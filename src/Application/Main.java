@@ -58,7 +58,11 @@ public class Main {
         ContractService service = new ContractService(new PayPalService());
         service.processContract(contract, installmentsAmount);
 
-        System.out.println("INSTALLMENTS:");
+        int dashLength = contract.getInstallments().get(installmentsAmount - 1).toString().length();
+        System.out.println("INSTALLMENTS:" );
+        System.out.printf(Installment.outputFormat + "\n", "Day of Week", "Due Date", "Value");
+        System.out.println(String.format("%" + dashLength + "s", " ").replace(" ", "-"));
+
         for (Installment installment : contract.getInstallments()) {
             System.out.println(installment);
         }

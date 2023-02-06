@@ -3,9 +3,9 @@ package entities;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 public class Installment {
+    public static String outputFormat = "%-16s %-16s %s";
     private final LocalDate dueDate;
     private final Double amount;
 
@@ -26,6 +26,6 @@ public class Installment {
     public String toString() {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance();
-        return "Due date: " + dateFormatter.format(getDueDate()) + " - Value: " + currencyFormatter.format(getAmount());
+        return String.format(outputFormat, dueDate.getDayOfWeek(), dateFormatter.format(dueDate), currencyFormatter.format(getAmount()));
     }
 }
