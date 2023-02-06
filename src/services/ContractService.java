@@ -22,6 +22,11 @@ public class ContractService {
             double paymentFee = onlinePaymentService.paymentFee(baseValue + interest);
             double installmentValue = baseValue + interest + paymentFee;
             LocalDate installmentDate = contract.getDate().plusMonths(i);
+           if (installmentDate.getDayOfWeek().getValue() == 6) {
+               installmentDate = installmentDate.plusDays(2);
+           } else if (installmentDate.getDayOfWeek().getValue() == 7) {
+               installmentDate = installmentDate.plusDays(1);
+           }
             contract.getInstallments().add(new Installment(installmentDate, installmentValue));
         }
     }
