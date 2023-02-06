@@ -5,6 +5,7 @@ import entities.Installment;
 import services.ContractService;
 import services.PayPalService;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -28,6 +29,7 @@ public class Main {
         Integer installmentsAmount = null;
         int errorCount = 0;
         int errorLimit = 3;
+        String limitReachedMsg = "Attempt limit reached.";
 
         System.out.println("CONTRACT DATA");
         System.out.print("Number: ");
@@ -37,22 +39,32 @@ public class Main {
                 errorCount = 0;
             } catch (NumberFormatException e) {
                 if (++errorCount == errorLimit) {
-                    throw new NumberFormatException("Reached attempts limit.");
+                    throw new NumberFormatException(limitReachedMsg);
                 }
                 System.out.print("Invalid input. The contract number must be an integer: ");
             }
         }
 
         System.out.print("Date (DD/MM/YYYY): ");
-        while(date == null) {
+        while(date == null || date.isBefore(LocalDate.now())) {
+            date = null; // Resets the date when the user inputs a past date.
             String dateInput = scanner.nextLine().strip();
             for (DateTimeFormatter formatter : dateFormatters) {
                 try {
                     date = LocalDate.parse(dateInput, formatter);
-                    errorCount = 0;
-                    if (formatter != dateFormatters[0] && formatter != dateFormatters[1]) {
-                        System.out.println("Parsed date: " + dateFormatters[0].format(date));
+                    String parsedDate = "Parsed date: " + dateFormatters[0].format(date);
+                    if (date.isBefore(LocalDate.now())) {
+                        if (++errorCount == errorLimit) {
+                            throw new DateTimeException(limitReachedMsg);
+                        }
+                        System.out.println(parsedDate);
+                        System.out.print("Date cannot be past. Enter a current or future date: ");
+                        break;
                     }
+                    if (formatter != dateFormatters[0] && formatter != dateFormatters[1]) {
+                        System.out.println(parsedDate);
+                    }
+                    errorCount = 0;
                     break;
                 } catch (DateTimeParseException e) {
                     continue;
@@ -60,7 +72,7 @@ public class Main {
             }
             if (date == null) {
                 if (++errorCount == errorLimit) {
-                    throw new DateTimeParseException("Reached attempts limit.", dateInput, -1);
+                    throw new DateTimeException(limitReachedMsg);
                 }
                 System.out.print("Invalid date format. Enter a valid date format: ");
             }
@@ -73,7 +85,7 @@ public class Main {
                 errorCount = 0;
             } catch (NumberFormatException e) {
                 if (++errorCount == errorLimit) {
-                    throw new NumberFormatException("Reached attempts limit.");
+                    throw new NumberFormatException(limitReachedMsg);
                 }
                 System.out.print("Invalid input. Contract value must be a number: ");
             }
@@ -85,7 +97,7 @@ public class Main {
                 installmentsAmount = Integer.parseInt(scanner.nextLine().strip());
             } catch (NumberFormatException e) {
                 if (++errorCount == errorLimit) {
-                    throw new NumberFormatException("Reached attempts limit.");
+                    throw new NumberFormatException(limitReachedMsg);
                 }
                 System.out.println("Invalid input. Number of installments must be an integer: ");
             }
