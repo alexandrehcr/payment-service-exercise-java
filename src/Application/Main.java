@@ -22,38 +22,76 @@ public class Main {
                 DateTimeFormatter.ofPattern("ddMMyy")
         };
 
-        int number;
+        Integer number = null;
         LocalDate date = null;
-        double value;
-        int installmentsAmount;
+        Double value = null;
+        Integer installmentsAmount = null;
+        int errorCount = 0;
+        int errorLimit = 3;
 
         System.out.println("CONTRACT DATA");
         System.out.print("Number: ");
-        number = Integer.parseInt(scanner.nextLine().strip());
-
-        System.out.print("Date (DD/MM/YYYY): ");
-        String dateInput = scanner.nextLine().strip();
-        for (DateTimeFormatter formatter : dateFormatters) {
+        while (number == null) {
             try {
-                date = LocalDate.parse(dateInput, formatter);
-                if (formatter != dateFormatters[0] && formatter != dateFormatters[1]) {
-                    System.out.println("Parsed date: " + dateFormatters[0].format(date));
+                number = Integer.parseInt(scanner.nextLine().strip());
+                errorCount = 0;
+            } catch (NumberFormatException e) {
+                if (++errorCount == errorLimit) {
+                    throw new NumberFormatException("Reached attempts limit.");
                 }
-                break;
-            } catch (DateTimeParseException e) {
-                continue;
+                System.out.print("Invalid input. The contract number must be an integer: ");
             }
         }
-        if (date == null) {
-            throw new RuntimeException("Invalid date format.");
+
+        System.out.print("Date (DD/MM/YYYY): ");
+        while(date == null) {
+            String dateInput = scanner.nextLine().strip();
+            for (DateTimeFormatter formatter : dateFormatters) {
+                try {
+                    date = LocalDate.parse(dateInput, formatter);
+                    errorCount = 0;
+                    if (formatter != dateFormatters[0] && formatter != dateFormatters[1]) {
+                        System.out.println("Parsed date: " + dateFormatters[0].format(date));
+                    }
+                    break;
+                } catch (DateTimeParseException e) {
+                    continue;
+                }
+            }
+            if (date == null) {
+                if (++errorCount == errorLimit) {
+                    throw new DateTimeParseException("Reached attempts limit.", dateInput, -1);
+                }
+                System.out.print("Invalid date format. Enter a valid date format: ");
+            }
         }
 
         System.out.print("Contract value: ");
-        value = Double.parseDouble(scanner.nextLine().replace(",", ".").strip());
-        System.out.print("Installments amount: ");
-        installmentsAmount = Integer.parseInt(scanner.nextLine().strip());
-        System.out.println();
+        while (value == null) {
+            try {
+                value = Double.parseDouble(scanner.nextLine().replace(",", ".").strip());
+                errorCount = 0;
+            } catch (NumberFormatException e) {
+                if (++errorCount == errorLimit) {
+                    throw new NumberFormatException("Reached attempts limit.");
+                }
+                System.out.print("Invalid input. Contract value must be a number: ");
+            }
+        }
 
+        while (installmentsAmount == null) {
+            try{
+                System.out.print("Installments amount: ");
+                installmentsAmount = Integer.parseInt(scanner.nextLine().strip());
+            } catch (NumberFormatException e) {
+                if (++errorCount == errorLimit) {
+                    throw new NumberFormatException("Reached attempts limit.");
+                }
+                System.out.println("Invalid input. Number of installments must be an integer: ");
+            }
+        }
+
+        System.out.println();
         Contract contract = new Contract(number, date, value);
         ContractService service = new ContractService(new PayPalService());
         service.processContract(contract, installmentsAmount);
